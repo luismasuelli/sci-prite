@@ -4,7 +4,7 @@ import collections
 ColorSpace = collections.namedtuple('ColorSpace', ['key', 'encoder', 'decoder'])
 
 
-def is_empty(cs):
+def is_colorspace(cs):
     return cs is None or cs == current
 
 
