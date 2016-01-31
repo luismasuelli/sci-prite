@@ -54,25 +54,27 @@ def _alpha_aware_converter(func):
             return numpy.dstack((func(image[:, :, :3]), image[:, :, 3]))
         else:
             return func(image)
+    return _converter
 
 
-def _alpha_aware_colorspace(enc, dec):
+def _alpha_aware_colorspace_wrapper(enc, dec, wrapper_class):
     """
     Creates a ColorSpace whose functions are alpha-channel aware.
     :param enc: encoder function
     :param dec: decoder function
+    :param wrapper_class: a wrapper class to use as object.
     :return:
     """
 
-    return ColorSpace(_alpha_aware_converter(enc), _alpha_aware_converter(dec))
+    def encode(image):
+        # Forth to wrapped
+        return wrapper_class(enc(image))
 
+    def decode(wrapper):
+        # Back to plain-rgb
+        dec(wrapper.np_image)
 
-rgb = _alpha_aware_colorspace(lambda a: a, lambda a: a)
-hsv = _alpha_aware_colorspace(rgb2hsv, hsv2rgb)
-luv = _alpha_aware_colorspace(rgb2luv, luv2rgb)
-hed = _alpha_aware_colorspace(rgb2hed, hed2rgb)
-lab = _alpha_aware_colorspace(rgb2lab, lab2rgb)
-xyz = _alpha_aware_colorspace(rgb2xyz, xyz2rgb)
+    return ColorSpace(_alpha_aware_converter(encode), _alpha_aware_converter(decode))
 
 
 def is_scalar(img):
@@ -248,3 +250,11 @@ class XYZ(ColorSpaceWrapper):
     xy_is, xz_is, yz_is = mask_bands(0, 1), mask_bands(0, 2), mask_bands(1, 2)
     xyz = mask_bands(0, 1, 2)
     xyza = mask_bands(0, 1, 2, 3)
+
+
+rgb = _alpha_aware_colorspace_wrapper(lambda a: a, lambda a: a, RGB)
+hsv = _alpha_aware_colorspace_wrapper(rgb2hsv, hsv2rgb, HSV)
+luv = _alpha_aware_colorspace_wrapper(rgb2luv, luv2rgb, LUV)
+hed = _alpha_aware_colorspace_wrapper(rgb2hed, hed2rgb, HED)
+lab = _alpha_aware_colorspace_wrapper(rgb2lab, lab2rgb, LAB)
+xyz = _alpha_aware_colorspace_wrapper(rgb2xyz, xyz2rgb, XYZ)
