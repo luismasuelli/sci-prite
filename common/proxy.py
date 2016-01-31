@@ -23,14 +23,9 @@ class Proxy(object):
             return super(Proxy, self).__setattr__(key, value)
         return setattr(self._, key, value)
 
-    def __getattribute__(self, item):
-        if hasattr(self, item):
-            # This check will stand good for existent variables like the proxy var
-            #   or other variables (class variables, methods, ...).
-            return super(Proxy, self).__getattribute__(item)
-        else:
-            # This one, for when the attribute is not proxy var nor the proxied object.
-            return getattr(self._, item)
+    def __getattr__(self, item):
+        # This one, for when the attribute is not proxy var nor the proxied object.
+        return getattr(self._, item)
 
     def __delattr__(self, item):
         if item == '_':
@@ -277,6 +272,3 @@ class Proxy(object):
 
     def __set__(self, *args, **kwargs):
         return self._.__set__(*args, **kwargs)
-
-    def __del__(self, *args, **kwargs):
-        return self._.__del__(*args, **kwargs)
