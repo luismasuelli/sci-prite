@@ -13,6 +13,10 @@ class MappingContext(collections.namedtuple('_MappingContext', ('image', 'cache'
     - Can calculate and cache elements.
 
     Even if it is not allowed to cache, will store the last processing result.
+
+    Another use is in a masked-chunk level. In this case, the initial rgb image
+      is not the full one, but just a chunk determined by a formerly-existent
+      mask. The usage, however, is the same.
     """
 
     def __new__(cls, image, cache):
@@ -63,12 +67,40 @@ class MappingContext(collections.namedtuple('_MappingContext', ('image', 'cache'
 
 class Masker(collections.namedtuple('Masker', ('masker', 'colorspace'))):
     """
-    A masker is a function executed with a colorspace.
+    A masker is a function executed with a colorspace (by default rgb).
     Takes a function, and a colorspace, to process an image in a mapping context.
     """
 
     def __new__(cls, masker, colorspace=rgb):
+        if not isinstance(rgb, ColorSpace):
+            raise TypeError("`colorspace` parameter for Masker must be a ColorSpace instance")
         return super(Masker, cls).__new__(cls, masker, colorspace)
 
     def get_mask(self, context):
         return self.masker(context.process_image(self.colorspace))
+
+
+class Action(collections.namedtuple('Action', ('action', 'colorspace'))):
+    """
+    An action executes over a masked image. For the same masked image, successive
+      actions will be applied and, in this way, it's a nonsense to cache the results,
+      but only take note on the applied colorspace.
+    """
+
+    def __new__(cls, action, colorspace=rgb):
+        if not isinstance(rgb, ColorSpace):
+            raise TypeError("`colorspace` parameter for Action must be a ColorSpace instance")
+        return super(Action, cls).__new__(cls, action, colorspace)
+
+    def execute(self, chunk):
+        """
+        Executes the action, taking the chunk in RGB[A] and returning it in RGB[A] as well but having
+          a specific colorspace for processing.
+        :param chunk:
+        :return:
+        """
+
+        if self.colorspace == rgb:
+            return self.action(chunk)
+        else:
+            return self.colorspace.decoder(self.action(self.colorspace.encoder(chunk)))
