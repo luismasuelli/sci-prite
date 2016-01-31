@@ -1,4 +1,5 @@
 import collections
+from functools import wraps
 import numpy
 
 ColorSpace = collections.namedtuple('ColorSpace', ['encoder', 'decoder'])
@@ -11,15 +12,6 @@ from skimage.color import (
     rgb2lab, lab2rgb,
     rgb2xyz, xyz2rgb,
 )
-
-
-rgb = ColorSpace(lambda a: a, lambda a: a)
-hsv = ColorSpace(rgb2hsv, hsv2rgb)
-luv = ColorSpace(rgb2luv, luv2rgb)
-hed = ColorSpace(rgb2hed, hed2rgb)
-lab = ColorSpace(rgb2lab, lab2rgb)
-xyz = ColorSpace(rgb2xyz, xyz2rgb)
-
 
 
 def rgb_normalize(arr):
@@ -46,6 +38,56 @@ def rgb_denormalize(arr):
     if arr.dtype in (numpy.float32, numpy.float64):
         return arr * 255.0
     return arr
+
+
+def _alpha_aware_converter(func):
+    """
+    Returns a new function that will apply the original converter but keep the alpha channel if the image is (W, H, 4).
+    :param converter:
+    :return:
+    """
+
+    @wraps(func)
+    def _converter(image):
+        if is_4comp(image):
+            return numpy.dstack((func(image[:, :, :3]), image[:, :, 3]))
+        else:
+            return func(image)
+
+
+def _alpha_aware_colorspace(enc, dec):
+    """
+    Creates a ColorSpace whose functions are alpha-channel aware.
+    :param enc: encoder function
+    :param dec: decoder function
+    :return:
+    """
+
+    return ColorSpace(_alpha_aware_converter(enc), _alpha_aware_converter(dec))
+
+
+rgb = _alpha_aware_colorspace(lambda a: a, lambda a: a)
+hsv = _alpha_aware_colorspace(rgb2hsv, hsv2rgb)
+luv = _alpha_aware_colorspace(rgb2luv, luv2rgb)
+hed = _alpha_aware_colorspace(rgb2hed, hed2rgb)
+lab = _alpha_aware_colorspace(rgb2lab, lab2rgb)
+xyz = _alpha_aware_colorspace(rgb2xyz, xyz2rgb)
+
+
+def is_scalar(img):
+    return len(img.shape) == 2
+
+
+def is_comp(img):
+    return len(img.shape) == 3
+
+
+def is_3comp(img):
+    return len(img.shape) == 3 and img.shape[2] == 3
+
+
+def is_4comp(img):
+    return len(img.shape) == 3 and img.shape[2] == 4
 
 
 class ColorSpaceWrapper(object):
