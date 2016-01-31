@@ -1,6 +1,7 @@
 import collections
 from functools import wraps
 import numpy
+from colormap.expressions import mask
 
 ColorSpace = collections.namedtuple('ColorSpace', ['encoder', 'decoder'])
 
@@ -152,12 +153,41 @@ def band_properties(cnt):
     return tuple(band_property(k) for k in range(cnt))
 
 
+def mask_bands(*idxes):
+    """
+    Intended to create a method that checks multiple simultaneous bands.
+    That kind of check does not return a boolean, but a mask.
+
+    E.g.
+      r_is = bands_check(0)
+      rgb_is = bands_check(0, 1, 2)
+      rgba_is = bands_check(0, 1, 2, 3)
+
+    Notes: if only one index is provided, a 1-arity method is returned and
+      the check is scalar. Scalar checks provide scalar values to mask function
+      and stuff like IN can be performed. Other scalar checks behave exactly as
+      the __eq__ operator.
+    """
+
+    if len(idxes) == 1:
+        def method(self, value):
+            return mask(self.np_image, value)
+    else:
+        def method(self, *values):
+            return mask(self.np_image, values)
+    return method
+
+
 class RGB(ColorSpaceWrapper):
     """
     RGB (perhaps with Alpha) color space.
     """
 
     r, g, b, alpha = band_properties(4)
+    r_is, g_is, b_is = mask_bands(0), mask_bands(1), mask_bands(2)
+    rg_is, rb_is, gb_is = mask_bands(0, 1), mask_bands(0, 2), mask_bands(1, 2)
+    rgb = mask_bands(0, 1, 2)
+    rgba = mask_bands(0, 1, 2, 3)
 
 
 class HSV(ColorSpaceWrapper):
@@ -166,6 +196,10 @@ class HSV(ColorSpaceWrapper):
     """
 
     h, s, v, alpha = band_properties(4)
+    h_is, s_is, v_is = mask_bands(0), mask_bands(1), mask_bands(2)
+    hs_is, hv_is, sv_is = mask_bands(0, 1), mask_bands(0, 2), mask_bands(1, 2)
+    hsv = mask_bands(0, 1, 2)
+    hsva = mask_bands(0, 1, 2, 3)
 
 
 class LUV(ColorSpaceWrapper):
@@ -174,6 +208,10 @@ class LUV(ColorSpaceWrapper):
     """
 
     l, u, v, alpha = band_properties(4)
+    l_is, u_is, v_is = mask_bands(0), mask_bands(1), mask_bands(2)
+    lu_is, lv_is, uv_is = mask_bands(0, 1), mask_bands(0, 2), mask_bands(1, 2)
+    luv = mask_bands(0, 1, 2)
+    luva = mask_bands(0, 1, 2, 3)
 
 
 class HED(ColorSpaceWrapper):
@@ -182,6 +220,10 @@ class HED(ColorSpaceWrapper):
     """
 
     h, e, d, alpha = band_properties(4)
+    h_is, e_is, d_is = mask_bands(0), mask_bands(1), mask_bands(2)
+    he_is, hd_is, ed_is = mask_bands(0, 1), mask_bands(0, 2), mask_bands(1, 2)
+    hed = mask_bands(0, 1, 2)
+    heda = mask_bands(0, 1, 2, 3)
 
 
 class LAB(ColorSpaceWrapper):
@@ -190,6 +232,10 @@ class LAB(ColorSpaceWrapper):
     """
 
     l, a, b, alpha = band_properties(4)
+    l_is, a_is, b_is = mask_bands(0), mask_bands(1), mask_bands(2)
+    la_is, lb_is, ab_is = mask_bands(0, 1), mask_bands(0, 2), mask_bands(1, 2)
+    lab = mask_bands(0, 1, 2)
+    laba = mask_bands(0, 1, 2, 3)
 
 
 class XYZ(ColorSpaceWrapper):
@@ -198,3 +244,7 @@ class XYZ(ColorSpaceWrapper):
     """
 
     x, y, z, alpha = band_properties(4)
+    x_is, y_is, z_is = mask_bands(0), mask_bands(1), mask_bands(2)
+    xy_is, xz_is, yz_is = mask_bands(0, 1), mask_bands(0, 2), mask_bands(1, 2)
+    xyz = mask_bands(0, 1, 2)
+    xyza = mask_bands(0, 1, 2, 3)
