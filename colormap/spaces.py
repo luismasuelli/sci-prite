@@ -1,7 +1,7 @@
 import collections
 
 
-ColorSpace = collections.namedtuple('ColorSpace', ['key', 'encoder', 'decoder'])
+ColorSpace = collections.namedtuple('ColorSpace', ['encoder', 'decoder'])
 
 
 def is_colorspace(cs):
