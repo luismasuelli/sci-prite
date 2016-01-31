@@ -1,3 +1,4 @@
+import numpy
 from six import integer_types
 from numpy import (
     int_, intp, int8, int16, int32, int64,
@@ -74,3 +75,23 @@ def mask(array, value):
     else:
         raise TypeError("Cannot take a mask from this argument. Only numpy-accepted numeric types, tuples, lists, or "
                         "`IN` instances are accepted")
+
+
+def sat01(array):
+    """
+    Clamps an array's values into [0:1] intervals
+    :param array:
+    :return:
+    """
+
+    return numpy.clip(array, 0., 1.)
+
+
+def sat255(array):
+    """
+    Clamps an array's values into [0:255] intervals
+    :param array:
+    :return:
+    """
+
+    return numpy.clip(array, 0, 255)
