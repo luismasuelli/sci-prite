@@ -133,6 +133,15 @@ class Mapper(collections.namedtuple('Mapper', ('entries',))):
     def __new__(cls):
         return super(Mapper, cls).__new__(cls, [])
 
+    def on(self, masker, colorspace=rgb):
+        """
+        Adds a mapping entry. Returns it.
+        :return:
+        """
+        entry = MappingEntry(masker, colorspace)
+        self.entries.append(entry)
+        return entry
+
     def run(self, image, cache):
         """
         Runs the mapping. Returns the mapped image.
