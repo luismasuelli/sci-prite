@@ -1,7 +1,9 @@
-from .spaces import rgb, hed, hsv, lab, luv, xyz, current, is_colorspace
+import collections
+from numpy import ones, zeros
+from .spaces import rgb, ColorSpace
 
 
-class MappingContext(object):
+class MappingContext(collections.namedtuple('_MappingContext', ('image', 'cache'))):
     """
     A mapping context relates to an execution of a Map's run() method.
     Involved the following:
@@ -11,32 +13,32 @@ class MappingContext(object):
     - Can calculate and cache elements.
     """
 
-    def __init__(self, img, caches, colorspace):
-        self.__img = img
-        self.__caches = caches
-        self.__cached = dict()
-        self.__colorspace = colorspace
+    def __new__(cls, image, cache):
+        super(MappingContext, cls).__new__(image, {} if cache else None)
 
-    def caches(self):
-        return self.__caches
+    def __init__(self, image, cache):
+        self.__colorspace = rgb
 
+    @property
     def colorspace(self):
         return self.__colorspace
 
-    def process_image(self, colorspace = None):
+    @colorspace.setter
+    def colorspace(self, value):
+        if value:
+            self.__colorspace = value
+
+    def process_image(self, colorspace):
         """
         Processes (and caches, if applicable) the image.
         """
 
-        if colorspace is None:
-            colorspace = self.__colorspace
-
         if colorspace == rgb:
-            return self.__img
+            return self.image
 
-        if not self.__caches:
-            return colorspace.encoder(self.__img)
+        if self.cache is None:
+            return colorspace.encoder(self.image)
         else:
-            if colorspace not in self.__cached:
-                self.__cached[colorspace] = colorspace.encoder(self.__img)
-            return self.__cached[colorspace]
+            if colorspace not in self.cache:
+                self.cache[colorspace] = colorspace.encoder(self.image)
+            return self.cache[colorspace]
