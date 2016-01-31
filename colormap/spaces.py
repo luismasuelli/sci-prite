@@ -2,6 +2,7 @@ import collections
 from functools import wraps
 import numpy
 from colormap.expressions import mask
+from common.proxy import Proxy
 
 ColorSpace = collections.namedtuple('ColorSpace', ['encoder', 'decoder'])
 
@@ -98,7 +99,7 @@ def is_4comp(img):
     return len(img.shape) == 3 and img.shape[2] == 4
 
 
-class ColorSpaceWrapper(object):
+class ColorSpaceWrapper(Proxy):
     """
     This is just a wrapper for an array describing an image.
     Any operation sent to this object, other than the specifically implemented
@@ -107,25 +108,7 @@ class ColorSpaceWrapper(object):
 
     # Other calls are simply proxied.
     def __init__(self, np_image):
-        self.np_image = np_image
-
-    def __setattr__(self, key, value):
-        if key == 'np_image':
-            return super(ColorSpaceWrapper, self).__setattr__(key, value)
-        return setattr(self.np_image, key, value)
-
-    def __getattr__(self, item):
-        if item == 'np_image':
-            return super(ColorSpaceWrapper, self).__getattribute__(item)
-        return getattr(self.np_image, item)
-
-    def __getitem__(self, item):
-        return self.np_image.__getitem__(item)
-
-    def __setitem__(self, key, value):
-        self.np_image.__setitem__(key, value)
-
-    # TODO proxy magic methods.
+        self._ = np_image
 
 
 def band_property(idx):
@@ -181,10 +164,10 @@ def mask_bands(*idxes):
 
     if len(idxes) == 1:
         def method(self, value):
-            return mask(self.np_image[:, :, idxes[0]], value)
+            return mask(self[:, :, idxes[0]], value)
     else:
         def method(self, *values):
-            return mask(self.np_image[:, :, idxes], values)
+            return mask(self[:, :, idxes], values)
     return method
 
 
