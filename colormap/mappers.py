@@ -1,6 +1,6 @@
 import collections
 from numpy import ones, zeros
-from .spaces import rgb, ColorSpace
+from .spaces import rgb, ColorSpace, RGB
 
 
 class MappingContext(collections.namedtuple('_MappingContext', ('image', 'cache'))):
@@ -52,7 +52,7 @@ class MappingContext(collections.namedtuple('_MappingContext', ('image', 'cache'
             raise TypeError("process_image() expects a single parameter of type ColorSpace")
 
         if colorspace == rgb:
-            return self.image
+            return RGB(self.image)
 
         if colorspace == self.__last_space:
             return self.__last_image
@@ -101,7 +101,7 @@ class Action(collections.namedtuple('Action', ('action', 'colorspace'))):
         """
 
         if self.colorspace == rgb:
-            return self.action(chunk)
+            return self.action(RGB(chunk))
         else:
             return self.colorspace.decoder(self.action(self.colorspace.encoder(chunk)))
 
