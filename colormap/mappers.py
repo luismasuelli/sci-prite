@@ -121,7 +121,7 @@ class MappingEntry(collections.namedtuple('MappingEntry', ('masker', 'actions'))
         :param colorspace:
         :return:
         """
-        self.actions.add(Action(action, colorspace))
+        self.actions.append(Action(action, colorspace))
         return self
 
 
@@ -163,7 +163,7 @@ class Mapper(collections.namedtuple('Mapper', ('entries',))):
             initial_mask = initial_mask & ~matched_mask
         # Apply actions on every mask. Apply a null action on the remaining mask.
         remaining_mask = initial_mask
-        new_image = zeros(image.shape[0:2], dtype=image.dtype)
+        new_image = zeros(image.shape[0:3], dtype=image.dtype)
         for mask, entry in premasked:
             new_image[mask] = image[mask]
             for action in entry.actions:

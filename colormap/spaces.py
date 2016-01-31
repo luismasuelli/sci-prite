@@ -51,7 +51,9 @@ def _alpha_aware_converter(func):
     @wraps(func)
     def _converter(image):
         if is_4comp(image):
-            return numpy.dstack((func(image[:, :, :3]), image[:, :, 3]))
+            result = func(image[:, :, :3])
+            alpha = image[:, :, 3]
+            return numpy.dstack((result, alpha))
         else:
             return func(image)
     return _converter
@@ -66,6 +68,9 @@ def _alpha_aware_colorspace_wrapper(enc, dec, wrapper_class):
     :return:
     """
 
+    enc = _alpha_aware_converter(enc)
+    dec = _alpha_aware_converter(dec)
+
     def encode(image):
         # Forth to wrapped
         return wrapper_class(enc(image))
@@ -74,7 +79,7 @@ def _alpha_aware_colorspace_wrapper(enc, dec, wrapper_class):
         # Back to plain-rgb
         dec(wrapper.np_image)
 
-    return ColorSpace(_alpha_aware_converter(encode), _alpha_aware_converter(decode))
+    return ColorSpace(encode, decode)
 
 
 def is_scalar(img):
@@ -100,24 +105,25 @@ class ColorSpaceWrapper(object):
       in this object (or any subclass) goes directly to the wrapped object.
     """
 
-    def __init__(self, np_image):
-        self.__np_image = np_image
-
-    @property
-    def np_image(self):
-        """
-        Returns the wrapped object.
-        """
-
-        return self.__np_image
-
     # Other calls are simply proxied.
+    def __init__(self, np_image):
+        self.np_image = np_image
 
     def __setattr__(self, key, value):
-        return setattr(self.__np_image, key, value)
+        if key == 'np_image':
+            return super(ColorSpaceWrapper, self).__setattr__(key, value)
+        return setattr(self.np_image, key, value)
 
     def __getattr__(self, item):
-        return getattr(self.__np_image, item)
+        if item == 'np_image':
+            return super(ColorSpaceWrapper, self).__getattribute__(item)
+        return getattr(self.np_image, item)
+
+    def __getitem__(self, item):
+        return self.np_image.__getitem__(item)
+
+    def __setitem__(self, key, value):
+        self.np_image.__setitem__(key, value)
 
 
 def band_property(idx):
@@ -173,10 +179,10 @@ def mask_bands(*idxes):
 
     if len(idxes) == 1:
         def method(self, value):
-            return mask(self.np_image, value)
+            return mask(self.np_image[:, :, idxes[0]], value)
     else:
         def method(self, *values):
-            return mask(self.np_image, values)
+            return mask(self.np_image[:, :, idxes], values)
     return method
 
 
