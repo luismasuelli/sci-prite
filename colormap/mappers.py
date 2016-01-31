@@ -20,7 +20,7 @@ class MappingContext(collections.namedtuple('_MappingContext', ('image', 'cache'
     """
 
     def __new__(cls, image, cache):
-        value = super(MappingContext, cls).__new__(image, {} if cache else None)
+        value = super(MappingContext, cls).__new__(cls, image, {} if cache else None)
         value.__colorspace = rgb
         value._set_last(None, None)
         return value
@@ -104,3 +104,60 @@ class Action(collections.namedtuple('Action', ('action', 'colorspace'))):
             return self.action(chunk)
         else:
             return self.colorspace.decoder(self.action(self.colorspace.encoder(chunk)))
+
+
+class MappingEntry(collections.namedtuple('MappingEntry', ('masker', 'actions'))):
+    """
+    A mapping entry is an IF-THEN clause for the mapping process.
+    """
+
+    def __new__(cls, masker, colorspace=rgb):
+        return super(MappingEntry, cls).__new__(cls, Masker(masker, colorspace), [])
+
+    def do(self, action, colorspace=rgb):
+        """
+        Adds this action to itself. Returns itself for builder pattern.
+        :param action:
+        :param colorspace:
+        :return:
+        """
+        self.actions.add(Action(action, colorspace))
+        return self
+
+
+class Mapper(collections.namedtuple('Mapper', ('entries',))):
+    """
+    Mapper object.
+    """
+
+    def __new__(cls):
+        return super(Mapper, cls).__new__(cls, [])
+
+    def run(self, image, cache):
+        """
+        Runs the mapping. Returns the mapped image.
+        :param image:
+        :param cache:
+        :return:
+        """
+
+        if len(image.shape) != 3 or image.shape[2] not in (3, 4):
+            raise ValueError("Image to be masked must have three dimensions (non-palette colors)")
+
+        context = MappingContext(image, cache)
+        # Guess the masks. Keep the remaining mask.
+        premasked = []
+        initial_mask = ones(image.shape[0:2], dtype=bool)
+        for entry in self.entries:
+            matched_mask = initial_mask & entry.masker.get_mask(context)
+            premasked.append((matched_mask, entry))
+            initial_mask = initial_mask & ~matched_mask
+        # Apply actions on every mask. Apply a null action on the remaining mask.
+        remaining_mask = initial_mask
+        new_image = zeros(image.shape[0:2], dtype=image.dtype)
+        for mask, entry in premasked:
+            new_image[mask] = image[mask]
+            for action in entry.actions:
+                new_image[mask] = action.execute(new_image[mask])
+        new_image[remaining_mask] = image[remaining_mask]
+        return new_image
