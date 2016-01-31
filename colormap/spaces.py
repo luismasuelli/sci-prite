@@ -125,6 +125,8 @@ class ColorSpaceWrapper(object):
     def __setitem__(self, key, value):
         self.np_image.__setitem__(key, value)
 
+    # TODO proxy magic methods.
+
 
 def band_property(idx):
     """
