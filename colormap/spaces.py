@@ -1,5 +1,5 @@
 import collections
-
+import numpy
 
 ColorSpace = collections.namedtuple('ColorSpace', ['encoder', 'decoder'])
 
@@ -19,6 +19,33 @@ luv = ColorSpace(rgb2luv, luv2rgb)
 hed = ColorSpace(rgb2hed, hed2rgb)
 lab = ColorSpace(rgb2lab, lab2rgb)
 xyz = ColorSpace(rgb2xyz, xyz2rgb)
+
+
+
+def rgb_normalize(arr):
+    """
+    Will normalize a uint8 image to a 0..1-valued image.
+      Note that alpha channel will also be affected.
+    :param arr:
+    :return:
+    """
+
+    if arr.dtype == numpy.uint8:
+        return arr / 255.0
+    return arr
+
+
+def rgb_denormalize(arr):
+    """
+    Will denormalize a float64 image to a 0..255-valued image.
+      Note that alpha channel will also be affected.
+    :param arr:
+    :return:
+    """
+
+    if arr.dtype in (numpy.float32, numpy.float64):
+        return arr * 255.0
+    return arr
 
 
 class ColorSpaceWrapper(object):
