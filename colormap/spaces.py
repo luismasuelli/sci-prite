@@ -4,10 +4,6 @@ import collections
 ColorSpace = collections.namedtuple('ColorSpace', ['encoder', 'decoder'])
 
 
-def is_colorspace(cs):
-    return cs is None or cs == current
-
-
 from skimage.color import (
     rgb2hsv, hsv2rgb,
     rgb2luv, luv2rgb,
@@ -17,7 +13,6 @@ from skimage.color import (
 )
 
 
-current = ColorSpace(None, None)
 rgb = ColorSpace(lambda a: a, lambda a: a)
 hsv = ColorSpace(rgb2hsv, hsv2rgb)
 luv = ColorSpace(rgb2luv, luv2rgb)
