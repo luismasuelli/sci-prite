@@ -11,13 +11,20 @@ class MappingContext(collections.namedtuple('_MappingContext', ('image', 'cache'
     - Referencing the current image.
     - Referencing the current run-wide colorspace.
     - Can calculate and cache elements.
+
+    Even if it is not allowed to cache, will store the last processing result.
     """
 
     def __new__(cls, image, cache):
-        super(MappingContext, cls).__new__(image, {} if cache else None)
+        value = super(MappingContext, cls).__new__(image, {} if cache else None)
+        value.__colorspace = rgb
+        value._set_last(None, None)
+        return value
 
-    def __init__(self, image, cache):
-        self.__colorspace = rgb
+    def _set_last(self, space, image):
+        self.__last_image = image
+        self.__last_space = space
+        return image
 
     @property
     def colorspace(self):
@@ -31,14 +38,37 @@ class MappingContext(collections.namedtuple('_MappingContext', ('image', 'cache'
     def process_image(self, colorspace):
         """
         Processes (and caches, if applicable) the image.
+
+        If the requested format is rgb we return the initial image.
+        If the requested format is the same last format, we return the same last image.
+        Otherwise we compute it or recover it from cache, according to the case.
         """
+
+        if not isinstance(rgb, ColorSpace):
+            raise TypeError("process_image() expects a single parameter of type ColorSpace")
 
         if colorspace == rgb:
             return self.image
 
+        if colorspace == self.__last_space:
+            return self.__last_image
+
         if self.cache is None:
-            return colorspace.encoder(self.image)
+            return self._set_last(colorspace, colorspace.encoder(self.image))
         else:
             if colorspace not in self.cache:
-                self.cache[colorspace] = colorspace.encoder(self.image)
+                self.cache[colorspace] = self._set_last(colorspace, colorspace.encoder(self.image))
             return self.cache[colorspace]
+
+
+class Masker(collections.namedtuple('Masker', ('masker', 'colorspace'))):
+    """
+    A masker is a function executed with a colorspace.
+    Takes a function, and a colorspace, to process an image in a mapping context.
+    """
+
+    def __new__(cls, masker, colorspace=rgb):
+        return super(Masker, cls).__new__(cls, masker, colorspace)
+
+    def get_mask(self, context):
+        return self.masker(context.process_image(self.colorspace))
