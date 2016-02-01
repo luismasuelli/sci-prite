@@ -24,5 +24,9 @@ mapper1.on(lambda hsv: hsv.h_is(IN(0, 3./180.0)) | hsv.h_is(IN(177.0/180.0, 1)),
 
 mapped_img = mapper1.run(rgb_img, True)
 
-plot = imshow(mapped_img)
+
+compared = hstack((rgb_img, mapped_img))
+
+
+plot = imshow(compared)
 show()
