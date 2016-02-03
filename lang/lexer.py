@@ -74,6 +74,15 @@ class LexerFactory(object):
             self._state_info = state_info
         return self._state_info
 
+    def _extra_tokens(self):
+        """
+        Optionally override to specify additional tokens not present
+          in parsing rules
+        :return:
+        """
+
+        return ()
+
     def _build_lexer_data(self):
         """
         Builds the lexer data. Stuff like `tokens` are built here.
@@ -87,7 +96,7 @@ class LexerFactory(object):
             states, token_name = _statetoken(f, self.state_info)
             if token_name not in ('error', 'ignore', 'eof'):
                 tokens.add(token_name)
-        self._tokens = tuple(tokens)
+        self._tokens = tuple(set(tuple(tokens) + tuple(self._extra_tokens())))
 
     def t_error(self, token):
         """
