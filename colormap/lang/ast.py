@@ -10,13 +10,13 @@ class Evaluable(object):
     def evaluate(self):
         raise NotImplementedError
 
-############
-############
+####################################################
+####################################################
 #
-# Data Types
+# Data Types (these operations have top precedence).
 #
-############
-############
+####################################################
+####################################################
 
 # Some types are truly primitive:
 #   Number
@@ -70,7 +70,7 @@ class Saturated(Evaluable, namedtuple('Saturated', ('value',))):
 ######################################
 ######################################
 #
-# Operators (these apply precedences)
+# Operators (these apply precedences).
 #
 ######################################
 ######################################
@@ -172,11 +172,11 @@ class ModExpression(Evaluable, namedtuple('ModExpression', _binary)):
     def evaluate(self):
         return self.left.evaluate() / self.right.evaluate()
 
-#########
+##################################################################
 #
-# Unary operators
+# Unary operators (With same precedence as relevant `data types`).
 #
-#########
+##################################################################
 
 # -X
 class NegatedExpression(Evaluable, namedtuple('NegatedExpression', _unary)):
