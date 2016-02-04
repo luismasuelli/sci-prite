@@ -1,7 +1,7 @@
 from ply.lex import runmain
-from lang.lexer import LexerFactory
+from lang import LYFactory
 
-class ColorMapLexerFactory(LexerFactory):
+class ColorMapLexerFactory(LYFactory):
 
     # comparison operators
     t_GT = r'\>'

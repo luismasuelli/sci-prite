@@ -1,4 +1,5 @@
 from ply.lex import lex, StringTypes
+from ply.yacc import yacc
 
 
 def _statetoken(s, names):
@@ -20,7 +21,7 @@ def _statetoken(s, names):
     return (states, tokenname)
 
 
-class LexerFactory(object):
+class LYFactory(object):
     """
     Pre-creates the `tokens` attribute for the class.
     """
@@ -37,12 +38,16 @@ class LexerFactory(object):
     # This one must be overridden.
     t_ignore = ''
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, lexer_args=None, lexer_kwargs=None, parser_args=None, parser_kwargs=None):
         """
         Builds the actual lexer object.
         :return:
         """
 
+        self._lexer_args = lexer_args or ()
+        self._lexer_kwargs = lexer_kwargs or {}
+        self._parser_args = parser_args or ()
+        self._parser_kwargs = parser_kwargs or {}
         self._state_info = None
         self._build_lexer_data()
 
@@ -131,10 +136,11 @@ class LexerFactory(object):
 
         return self._tokens
 
-    def lexer(self):
+    def ly(self):
         """
         Creates a lexer.
         :return:
         """
 
-        return lex(object=self)
+        return (lex(object=self, *self._lexer_args, **self._lexer_kwargs),
+                yacc(module=self, *self._parser_args, **self._parser_kwargs))
