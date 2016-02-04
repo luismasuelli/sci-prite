@@ -1,5 +1,5 @@
 from ply.lex import runmain
-from lang import LYFactory
+from common.lang import LYFactory
 
 class ColorMapLexerFactory(LYFactory):
 
@@ -14,6 +14,7 @@ class ColorMapLexerFactory(LYFactory):
     # logic (only bitwise are relevant) operators
     t_AND = r'&'
     t_OR = r'\|'
+    t_XOR = r'\^'
     t_NOT = r'~'
 
     # math operators (relevant only since they will operate on 0..1 values)
@@ -21,6 +22,7 @@ class ColorMapLexerFactory(LYFactory):
     t_MINUS = r'-'
     t_BY = r'\*'
     t_QUOTIENT = r'/'
+    t_MODULO = r'%'
 
     # misc operators
     t_PAREN_START = r'\('
@@ -125,7 +127,7 @@ class ColorMapLexerFactory(LYFactory):
 
 if __name__ == '__main__':
     factory = ColorMapLexerFactory()
-    lexer = factory.lexer()
-    print factory.tokens
-    runmain(lexer, '> < <> != >= <= == [(&|~)],;: 12.5 "a\\"b" .5 rgb hsv hsl luv true false none require as in alpha '
-                   'on pixels having do end using forbid require allow')
+    parse_func, token_func = factory.ly()
+    for t in token_func('> < <> != >= <= == [(&|~)],;: 12.5 "a\\"b" .5 rgb hsv hsl luv true false none require as '
+                        'in alpha on pixels having do end using forbid require allow'):
+        print t

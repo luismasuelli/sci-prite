@@ -127,6 +127,12 @@ class LYFactory(object):
 
         t.lexer.lineno += len(t.value)
 
+    def p_main(self, p):
+        "main :"
+
+    def p_error(self, p):
+        pass
+
     @property
     def tokens(self):
         """
@@ -136,11 +142,21 @@ class LYFactory(object):
 
         return self._tokens
 
-    def ly(self):
+    def ly(self, input=None, debug=False, tracking=False):
         """
-        Creates a lexer.
+        Creates a lexer, a parser, and starts the party.
         :return:
         """
 
-        return (lex(object=self, *self._lexer_args, **self._lexer_kwargs),
-                yacc(module=self, *self._parser_args, **self._parser_kwargs))
+        if len(self._parser_args) < 5 and 'start' not in self._parser_kwargs:
+            self._parser_kwargs['start'] = 'main'
+        lexer = lex(object=self, *self._lexer_args, **self._lexer_kwargs)
+        parser = yacc(module=self, *self._parser_args, **self._parser_kwargs)
+        lexer.parser = parser
+        if input is None:
+            def _lex_iterate(inp):
+                lexer.input(inp)
+                return (t for t in lexer)
+            return lambda inp: parser.parse(inp, lexer, debug, tracking), _lex_iterate
+        else:
+            return parser.parse(input, lexer, debug, tracking)
