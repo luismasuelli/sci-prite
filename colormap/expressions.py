@@ -87,6 +87,16 @@ def sat01(array):
     return numpy.clip(array, 0., 1.)
 
 
+def rot01(array):
+    """
+    Calculates % 1.0 over an array.
+    :param array:
+    :return:
+    """
+
+    return array % 1.
+
+
 def sat255(array):
     """
     Clamps an array's values into [0:255] intervals
