@@ -27,10 +27,14 @@ class ColorMapLexerFactory(LYFactory):
     # misc operators
     t_PAREN_START = r'\('
     t_PAREN_END = r'\)'
-    t_INDEX_START = r'\['
-    t_INDEX_END = r'\]'
+    t_SBRACE_START = r'\['
+    t_SBRACE_END = r'\]'
+    t_BRACE_START = r'\{'
+    t_BRACE_END = r'\}'
     t_SATURATE_START = r'\(\|'
     t_SATURATE_END = r'\|\)'
+    t_VECTOR_START = r'\<\|'
+    t_VECTOR_END = r'\|\>'
     t_COLON = r':'  # for slices and directive details
     t_RANGE = r'\.\.'  # e.g. 0.25..0.75
     t_PLUSMIN = r'\+-'  # e.g. 0.5 +- 0.25
