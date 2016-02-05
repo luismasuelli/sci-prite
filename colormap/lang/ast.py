@@ -37,32 +37,58 @@ class Primitive(Evaluable, namedtuple('Primitive', _primitive)):
     def evaluate(self):
         return self.expression
 
-class Interval(Evaluable, namedtuple('Interval', ('min', 'max', 'strict_min', 'strict_max'))):
+class CenteredInterval(Evaluable, namedtuple('CenteredInterval', ('center', 'offset', 'strict_min', 'strict_max'))):
+    """
+    An expression like [4 +- 1} where braces are strict.
+    """
+
+    def evaluate(self):
+        return IN(self.center - self.offset, self.center + self.offset, self.strict_min, self.strict_max)
+
+class RangeInterval(Evaluable, namedtuple('RangeInterval', ('min', 'max', 'strict_min', 'strict_max'))):
+    """
+    An expression like [3 .. 5} where braces are strict.
+    """
 
     def evaluate(self):
         return IN(self.min, self.max, self.strict_min, self.strict_max)
 
 class Slice(Evaluable, namedtuple('Slice', ('start', 'stop', 'step'))):
+    """
+    An expression like [a]:[b][:[c]]
+    """
 
     def evaluate(self):
         return slice(self.start, self.stop, self.step)
 
 class Vector(Evaluable, namedtuple('Vector', ('elements',))):
+    """
+    An expression like <|1, 2, 3|>
+    """
 
     def evaluate(self):
         return tuple(self.elements)
 
 class IndexVector(Evaluable, namedtuple('IndexVector', ('elements',))):
+    """
+    An expression like 1, 2, 3:4:1, 5
+    """
 
     def evaluate(self):
         return tuple(self.elements)
 
 class Indexed(Evaluable, namedtuple('Indexed', ('master', 'index'))):
+    """
+    An expression like p[1, 2, 3:4:1, 5]
+    """
 
     def evaluate(self):
         return self.master.__getitem__(self.index)
 
 class Saturated(Evaluable, namedtuple('Saturated', ('value',))):
+    """
+    An expression like (| an_array |)
+    """
 
     def evaluate(self):
         return sat01(self.value)
