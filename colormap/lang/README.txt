@@ -115,7 +115,8 @@ Directives:
      Rules:
        $ = [ numbers ] ;
        numbers = number_cslist | ;
-       number_cslist = number | number , number_cslist ;
+       number_cslist = number_expression | number , number_cslist ;
+       number_expression = an expression involving only $variables and numbers ;
 
      Tokens:
        [ ] ,
@@ -128,12 +129,12 @@ Directives:
      Rules:
        $ = [ slice ] ;
        slice = opt_number colon opt_number colon opt_number ;
-       opt_number = number | ;
+       opt_number = number_expression | ;
+       number_expression = an expression involving only $variables and numbers ;
 
      Tokens:
        [ ]
        colon: :
-       number: value by regex
 
      Semantic:
        Range vector object (as provided by range())
