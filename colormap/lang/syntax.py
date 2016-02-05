@@ -58,13 +58,14 @@ class ColorMapLexerFactory(LYFactory):
         'allow': 'ALLOW',
         'forbid': 'FORBID',
         'as': 'AS',
+        # block delimiters
+        'do': 'DO',
+        'end': 'END',
         # instructions
         # on [space] pixels having ... do ... end;
         'on': 'ON',
         'pixels': 'PIXELS',
         'having': 'HAVING',
-        'do': 'DO',
-        'end': 'END',
         # [using (space):]
         'using': 'USING',
         # intervals
