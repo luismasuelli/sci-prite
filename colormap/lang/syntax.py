@@ -28,13 +28,14 @@ class ColorMapLexerFactory(LYFactory):
     t_PAREN_END = r'\)'
     t_SBRACE_START = r'\['
     t_SBRACE_END = r'\]'
-    t_RANGE = r'\.\.'  # e.g. 0.25..0.75
+    t_RANGE = r'\.\.'  # e.g. 0.25 .. 0.75
     t_PLUSMIN = r'\+-'  # e.g. 0.5 +- 0.25
-    t_COMMA = r','  # intended as element separator
 
     # tokens for sentence delimitation
     t_COLON = r':'  # for slices and directive details
-    t_SEMICOLON = r';'
+    t_SEMICOLON = r';'  # intended as instruction separator
+    t_COMMA = r','  # intended as element separator
+    t_DOT = '.'  # intended as reference path separator
 
     # A string containing ignored characters (spaces and tabs)
     t_ignore = ' \t'
@@ -147,24 +148,73 @@ class ColorMapLexerFactory(LYFactory):
     #
     #############################################
 
-    def p_numeric_expression(self,  p):
+    def p_empty(self, p):
+        """
+        empty :
         """
 
+    def p_numeric_inversion(self, p):
+        """
+        numeric_inversion : MINUS numeric_expression
+        """
+
+    def p_numeric_factor(self, p):
+        """
+        numeric_factor : NUMBER | NUMVAR | numeric_inversion | PAREN_START numeric_expression PAREN_END
+        """
+
+    def p_numeric_term(self, p):
+        """
+        numeric_term : numeric_factor BY numeric_term
+                     | numeric_factor QUOTIENT numeric_term
+        """
+
+    def p_numeric_expression(self,  p):
+        """
+        numeric_expression : numeric_term PLUS numeric_expression
+                           | numeric_term MINUS numeric_expression
+        """
+
+    def p_vector_subtraction(self, p):
+        """
+        vector_addition : vector_expression MINUS vector_expression
+        """
+
+    def p_vector_addition(self, p):
+        """
+        vector_addition : vector_expression PLUS vector_expression
+        """
+
+    def p_vector_division(self, p):
+        """
+        vector_division : vector_expression QUOTIENT numeric_expression
+        """
+
+    def p_vector_multiplication(self, p):
+        """
+        vector_multiplication : vector_expression BY numeric_expression | numeric_expression BY vector_expression
         """
 
     def p_vector_expression(self, p):
         """
-
+        vector_expression : literal_vector | VECVAR
+                          | vector_addition | vector_subtraction
+                          | vector_multiplication | vector_division
         """
 
     def p_indexed_vector(self, p):
         """
+        indexed_vector : vector_expression SBRACE_START numeric_expression SBRACE_END
+        """
 
+    def p_numeric_expression_cslist(self, p):
+        """
+        numeric_expression_cslist : numeric_expression COMMA numeric_expression_cslist | empty
         """
 
     def p_literal_vector(self, p):
         """
-        literal_vector :
+        literal_vector : SBRACE_START p_numeric_expression_cslist SBRACE_END
         """
 
     def p_numeric_var_instruction(self, p):
@@ -176,6 +226,14 @@ class ColorMapLexerFactory(LYFactory):
         """
         vector_var_instruction : VECVAR ASSIGN vector_expression SEMICOLON
         """
+
+    def p_assignment_instruction(self, p):
+        """
+        var_instruction : vector_var_instruction
+                        | numeric_var_instruction
+        """
+
+        p[0] = p[1]
 
 
 if __name__ == '__main__':
