@@ -28,8 +28,6 @@ class ColorMapLexerFactory(LYFactory):
     t_PAREN_END = r'\)'
     t_SBRACE_START = r'\['
     t_SBRACE_END = r'\]'
-    t_SATURATE_START = r'\(\|'
-    t_SATURATE_END = r'\|\)'
     t_RANGE = r'\.\.'  # e.g. 0.25..0.75
     t_PLUSMIN = r'\+-'  # e.g. 0.5 +- 0.25
     t_COMMA = r','  # intended as element separator
@@ -149,12 +147,43 @@ class ColorMapLexerFactory(LYFactory):
     #
     #############################################
 
+    def p_numeric_expression(self,  p):
+        """
+
+        """
+
+    def p_vector_expression(self, p):
+        """
+
+        """
+
+    def p_indexed_vector(self, p):
+        """
+
+        """
+
+    def p_literal_vector(self, p):
+        """
+        literal_vector :
+        """
+
+    def p_numeric_var_instruction(self, p):
+        """
+        numeric_var_instruction : NUMVAR ASSIGN numeric_expression SEMICOLON
+        """
+
+    def p_vector_var_instruction(self, p):
+        """
+        vector_var_instruction : VECVAR ASSIGN vector_expression SEMICOLON
+        """
+
 
 if __name__ == '__main__':
     factory = ColorMapLexerFactory(parser_kwargs=dict(
         # start=''
     ))
     parse_func, token_func = factory.ly()
-    for t in token_func('> < <> != >= <= == [(&|~)],;: 12.5 "a\\"b" .5 rgb hsv hsl luv true false none require as '
-                        'in alpha on pixels having do end using forbid require allow $aaa $$bbb'):
-        print t
+    # for t in token_func('> < <> != >= <= == [(&|~)],;: 12.5 "a\\"b" .5 rgb hsv hsl luv true false none require as '
+    #                     'in alpha on pixels having do end using forbid require allow $aaa $$bbb'):
+    #     print t
+    print parse_func('$lorem = 1.45;')
