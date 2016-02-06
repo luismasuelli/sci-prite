@@ -130,13 +130,31 @@ class ColorMapLexerFactory(LYFactory):
         # No more keywords recognized. Discard the token.
         print "Illegal constant or keyword: %s" % t.value[0]
 
+    def t_NUMVAR(self, t):
+        r"\$[a-zA-Z_][a-zA-Z0-9_]*"
+        t.value = t.value[1:]
+        return t
+
+    def t_VECVAR(self, t):
+        r"\$\$[a-zA-Z_][a-zA-Z0-9_]*"
+        t.value = t.value[2:]
+        return t
+
     def _extra_tokens(self):
         return ('SPACE', 'BOOLEAN', 'NONE') + tuple(set(self.RESERVED_WORDS.values()))
 
+    #############################################
+    #
+    # Parsing rules start here.
+    #
+    #############################################
+
 
 if __name__ == '__main__':
-    factory = ColorMapLexerFactory()
+    factory = ColorMapLexerFactory(parser_kwargs=dict(
+        # start=''
+    ))
     parse_func, token_func = factory.ly()
     for t in token_func('> < <> != >= <= == [(&|~)],;: 12.5 "a\\"b" .5 rgb hsv hsl luv true false none require as '
-                        'in alpha on pixels having do end using forbid require allow'):
+                        'in alpha on pixels having do end using forbid require allow $aaa $$bbb'):
         print t
