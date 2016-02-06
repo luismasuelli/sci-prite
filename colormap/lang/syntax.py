@@ -1,4 +1,6 @@
+from numpy import array
 from common.lang import LYFactory
+from .ast import expressions
 
 class ColorMapLexerFactory(LYFactory):
 
@@ -127,7 +129,7 @@ class ColorMapLexerFactory(LYFactory):
             return token
 
         # No more keywords recognized. Discard the token.
-        print "Illegal constant or keyword: %s" % t.value[0]
+        print "Illegal constant or keyword: %s" % token.value[0]
 
     def t_NUMVAR(self, t):
         r"\$[a-zA-Z_][a-zA-Z0-9_]*"
@@ -153,47 +155,104 @@ class ColorMapLexerFactory(LYFactory):
         empty :
         """
 
+        p[0] = None
+
     def p_numeric_inversion(self, p):
         """
         numeric_inversion : MINUS numeric_expression
         """
 
+        p[0] = expressions.Inversion(p[2])
+
     def p_numeric_factor(self, p):
         """
-        numeric_factor : NUMBER | NUMVAR | numeric_inversion | PAREN_START numeric_expression PAREN_END
+        numeric_factor : PAREN_START numeric_expression PAREN_END
         """
+
+        p[0] = p[2]
+
+    def p_numeric_division(self, p):
+        """
+        numeric_division : numeric_term QUOTIENT numeric_factor
+        """
+
+        p[0] = expressions.Division(p[1], p[2])
+
+    def p_numeric_multiplication(self, p):
+        """
+        numeric_multiplication : numeric_term BY numeric_factor
+        """
+
+        p[0] = expressions.Multiplication(p[1], p[2])
 
     def p_numeric_term(self, p):
         """
-        numeric_term : numeric_factor BY numeric_term
-                     | numeric_factor QUOTIENT numeric_term
+        numeric_term : numeric_multiplication | numeric_division | numeric_factor
         """
+
+        p[0] = p[1]
+
+    def p_numeric_addition(self, p):
+        """
+        numeric_addition : numeric_expression MINUS numeric_term
+        """
+
+        p[0] = expressions.Subtraction(p[1], p[2])
+
+    def p_numeric_subtraction(self, p):
+        """
+        numeric_addition : numeric_expression PLUS numeric_term
+        """
+
+        p[0] = expressions.Addition(p[1], p[2])
 
     def p_numeric_expression(self,  p):
         """
-        numeric_expression : numeric_term PLUS numeric_expression
-                           | numeric_term MINUS numeric_expression
+        numeric_expression : numeric_addition | numeric_subtraction | numeric_term
+                           | NUMBER | NUMVAR | numeric_inversion
         """
+
+        p[0] = p[1]
+
+    def p_vector_term(self, p):
+        """
+        vector_term : vector_expression
+        """
+
+        p[0] = p[1]
 
     def p_vector_subtraction(self, p):
         """
-        vector_addition : vector_expression MINUS vector_expression
+        vector_addition : vector_expression MINUS vector_term
         """
+
+        if p[1].shape != p[2].shape:
+            raise SyntaxError("vectors being subtracted must have the same shape")
+        p[0] = expressions.Subtraction(p[1], p[2])
 
     def p_vector_addition(self, p):
         """
-        vector_addition : vector_expression PLUS vector_expression
+        vector_addition : vector_expression PLUS vector_term
         """
+
+        if p[1].shape != p[2].shape:
+            raise SyntaxError("vectors being added must have the same shape")
+        p[0] = expressions.Addition(p[1], p[2])
 
     def p_vector_division(self, p):
         """
         vector_division : vector_expression QUOTIENT numeric_expression
         """
 
+        p[0] = expressions.Division(p[1], p[3])
+
     def p_vector_multiplication(self, p):
         """
-        vector_multiplication : vector_expression BY numeric_expression | numeric_expression BY vector_expression
+        vector_multiplication : vector_expression BY numeric_expression
+                              | numeric_expression BY vector_expression
         """
+
+        p[0] = expressions.Multiplication(p[1], p[3])
 
     def p_vector_expression(self, p):
         """
@@ -202,38 +261,65 @@ class ColorMapLexerFactory(LYFactory):
                           | vector_multiplication | vector_division
         """
 
+        p[0] = p[1]
+
     def p_indexed_vector(self, p):
         """
         indexed_vector : vector_expression SBRACE_START numeric_expression SBRACE_END
         """
 
+        p[0] = expressions.VectorIndexation(p[1], p[3])
+
     def p_numeric_expression_cslist(self, p):
         """
-        numeric_expression_cslist : numeric_expression COMMA numeric_expression_cslist | empty
+        numeric_expression_cslist : numeric_expression COMMA numeric_expression_cslist
+                                  | empty
         """
+
+        if len(p) == 1:
+            p[0] = ()
+        else:
+            p[0] = (p[1],) + p[3]
 
     def p_literal_vector(self, p):
         """
         literal_vector : SBRACE_START p_numeric_expression_cslist SBRACE_END
         """
 
+        p[0] = array(p[1])
+
     def p_numeric_var_instruction(self, p):
         """
         numeric_var_instruction : NUMVAR ASSIGN numeric_expression SEMICOLON
         """
+
+        p[0] = expressions.NumberAssignment(p[1], p[3])
 
     def p_vector_var_instruction(self, p):
         """
         vector_var_instruction : VECVAR ASSIGN vector_expression SEMICOLON
         """
 
-    def p_assignment_instruction(self, p):
+        p[0] = expressions.VectorAssignment(p[1], p[3])
+
+    def p_var_instruction(self, p):
         """
         var_instruction : vector_var_instruction
                         | numeric_var_instruction
         """
 
         p[0] = p[1]
+
+    def p_var_instructions(self, p):
+        """
+        var_instructions : var_instruction var_instructions
+                         | empty
+        """
+
+        if len(p) == 1:
+            p[0] = ()
+        else:
+            p[0] = (p[1],) + p[2]
 
 
 if __name__ == '__main__':
