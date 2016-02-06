@@ -28,25 +28,29 @@ class ColorMapLexerFactory(LYFactory):
     t_PAREN_END = r'\)'
     t_SBRACE_START = r'\['
     t_SBRACE_END = r'\]'
-    t_BRACE_START = r'\{'
-    t_BRACE_END = r'\}'
     t_SATURATE_START = r'\(\|'
     t_SATURATE_END = r'\|\)'
-    t_VECTOR_START = r'\<\|'
-    t_VECTOR_END = r'\|\>'
-    t_COLON = r':'  # for slices and directive details
     t_RANGE = r'\.\.'  # e.g. 0.25..0.75
     t_PLUSMIN = r'\+-'  # e.g. 0.5 +- 0.25
     t_COMMA = r','  # intended as element separator
 
     # tokens for sentence delimitation
-    t_SEMICOLON = ';'
+    t_COLON = r':'  # for slices and directive details
+    t_SEMICOLON = r';'
 
     # A string containing ignored characters (spaces and tabs)
     t_ignore = ' \t'
 
+    # Assignment operators:
+    t_ASSIGN = r'='  # only for variables
+    t_MUL_ASSIGN = r'\*='  # only for actions
+    t_DIV_ASSIGN = r'/='  # only for actions
+    t_ADD_ASSIGN = r'\+='  # only for actions
+    t_SUB_ASSIGN = r'-='  # only for actions
+
     def t_error(self, t):
-        raise self.Error("Illegal character '%s'" % t.value[0])
+        print "Illegal character '%s'" % t.value[0]
+        t.lexer.skip(1)
 
     RESERVED_WORDS = {
         # alpha directive and require directive
@@ -98,7 +102,7 @@ class ColorMapLexerFactory(LYFactory):
             t.value = eval(t.value)
             return t
         except SyntaxError:
-            raise self.Error('Invalid string literal: ' + t.value)
+            print "Illegal string: %s" % t.value[0]
 
     def t_NAME(self, token):
         r'[a-zA-Z_][a-zA-Z0-9_]*'
@@ -123,12 +127,11 @@ class ColorMapLexerFactory(LYFactory):
             token.value = constant[1]
             return token
 
-        # It is a name. No more keywords recognized.
-        token.type = 'NAME'
-        return token
+        # No more keywords recognized. Discard the token.
+        print "Illegal constant or keyword: %s" % t.value[0]
 
     def _extra_tokens(self):
-        return ('SPACE', 'NAME', 'BOOLEAN', 'NONE') + tuple(set(self.RESERVED_WORDS.values()))
+        return ('SPACE', 'BOOLEAN', 'NONE') + tuple(set(self.RESERVED_WORDS.values()))
 
 
 if __name__ == '__main__':
