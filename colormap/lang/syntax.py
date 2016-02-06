@@ -187,7 +187,9 @@ class ColorMapLexerFactory(LYFactory):
 
     def p_numeric_term(self, p):
         """
-        numeric_term : numeric_multiplication | numeric_division | numeric_factor
+        numeric_term : numeric_multiplication
+                     | numeric_division
+                     | numeric_factor
         """
 
         p[0] = p[1]
@@ -201,15 +203,19 @@ class ColorMapLexerFactory(LYFactory):
 
     def p_numeric_subtraction(self, p):
         """
-        numeric_addition : numeric_expression PLUS numeric_term
+        numeric_subtraction : numeric_expression PLUS numeric_term
         """
 
         p[0] = expressions.Addition(p[1], p[2])
 
     def p_numeric_expression(self,  p):
         """
-        numeric_expression : numeric_addition | numeric_subtraction | numeric_term
-                           | NUMBER | NUMVAR | numeric_inversion
+        numeric_expression : numeric_addition
+                           | numeric_subtraction
+                           | numeric_term
+                           | NUMBER
+                           | NUMVAR
+                           | numeric_inversion
         """
 
         p[0] = p[1]
@@ -223,7 +229,7 @@ class ColorMapLexerFactory(LYFactory):
 
     def p_vector_subtraction(self, p):
         """
-        vector_addition : vector_expression MINUS vector_term
+        vector_subtraction : vector_expression MINUS vector_term
         """
 
         if p[1].shape != p[2].shape:
@@ -256,9 +262,12 @@ class ColorMapLexerFactory(LYFactory):
 
     def p_vector_expression(self, p):
         """
-        vector_expression : literal_vector | VECVAR
-                          | vector_addition | vector_subtraction
-                          | vector_multiplication | vector_division
+        vector_expression : literal_vector
+                          | VECVAR
+                          | vector_addition
+                          | vector_subtraction
+                          | vector_multiplication
+                          | vector_division
         """
 
         p[0] = p[1]
@@ -283,7 +292,7 @@ class ColorMapLexerFactory(LYFactory):
 
     def p_literal_vector(self, p):
         """
-        literal_vector : SBRACE_START p_numeric_expression_cslist SBRACE_END
+        literal_vector : SBRACE_START numeric_expression_cslist SBRACE_END
         """
 
         p[0] = array(p[1])
