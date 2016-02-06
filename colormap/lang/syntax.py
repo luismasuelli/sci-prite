@@ -1,4 +1,3 @@
-from ply.lex import runmain
 from common.lang import LYFactory
 
 class ColorMapLexerFactory(LYFactory):
