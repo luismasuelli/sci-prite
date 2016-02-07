@@ -1,6 +1,8 @@
 import collections
 from numpy import ones, zeros
 from .spaces import rgb, ColorSpace, RGB
+from cantrips.watch.expression import Expression
+from cantrips.watch.scope import Scope
 
 
 class MappingContext(collections.namedtuple('_MappingContext', ('image', 'cache'))):
@@ -100,10 +102,26 @@ class Action(collections.namedtuple('Action', ('action', 'colorspace'))):
         :return:
         """
 
+        # Wrap the input
         if self.colorspace == rgb:
-            return self.action(RGB(chunk))
+            wrapper = RGB(chunk)
         else:
-            return self.colorspace.decoder(self.action(self.colorspace.encoder(chunk)))
+            wrapper = self.colorspace.encoder(chunk)
+
+        # Process input -> output
+        if isinstance(self.action, Expression):
+            # Assign the wrapper as scope member with appropriate name.
+            scope = Scope()
+            setattr(scope, self.colorspace.components, wrapper)
+            result = scope['$eval'](self.action)
+        else:
+            result = self.action(wrapper)
+
+        # Unwrap the output
+        if self.colorspace == rgb:
+            return result
+        else:
+            return self.colorspace.decoder(result)
 
 
 class MappingEntry(collections.namedtuple('MappingEntry', ('masker', 'actions'))):
