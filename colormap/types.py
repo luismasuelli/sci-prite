@@ -1,5 +1,3 @@
-
-
 class IN(object):
     """
     Range-check for arrays.
