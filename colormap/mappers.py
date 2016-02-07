@@ -79,7 +79,14 @@ class Masker(collections.namedtuple('Masker', ('masker', 'colorspace'))):
         return super(Masker, cls).__new__(cls, masker, colorspace)
 
     def get_mask(self, context):
-        return self.masker(context.process_image(self.colorspace))
+        wrapper = context.process_image(self.colorspace)
+        if isinstance(self.masker, Expression):
+            scope = Scope()
+            setattr(scope, self.colorspace.components, wrapper)
+            result = scope['$eval'](self.masker)
+        else:
+            result = self.masker(wrapper)
+        return result
 
 
 class Action(collections.namedtuple('Action', ('action', 'colorspace'))):
