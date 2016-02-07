@@ -9,6 +9,10 @@ class NumberAssignment(namedtuple('NumberAssignment', ('variable', 'expression')
     pass
 
 
+class LiteralVector(namedtuple('LiteralVector', ('elements',))):
+    pass
+
+
 class VectorIndexation(namedtuple('VectorIndexation', ('vector', 'index'))):
     pass
 
