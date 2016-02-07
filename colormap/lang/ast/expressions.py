@@ -1,37 +1,38 @@
 from collections import namedtuple
+from .core import TreeNode
 
 
-class VectorAssignment(namedtuple('VectorAssignment', ('variable', 'expression'))):
+class VectorAssignment(TreeNode, namedtuple('VectorAssignment', ('variable', 'expression'))):
     pass
 
 
-class NumberAssignment(namedtuple('NumberAssignment', ('variable', 'expression'))):
+class NumberAssignment(TreeNode, namedtuple('NumberAssignment', ('variable', 'expression'))):
     pass
 
 
-class LiteralVector(namedtuple('LiteralVector', ('elements',))):
+class LiteralVector(TreeNode, namedtuple('LiteralVector', ('elements',))):
     pass
 
 
-class VectorIndexation(namedtuple('VectorIndexation', ('vector', 'index'))):
+class VectorIndexation(TreeNode, namedtuple('VectorIndexation', ('vector', 'index'))):
     pass
 
 
-class Multiplication(namedtuple('Multiplication', ('left', 'right'))):
+class Multiplication(TreeNode, namedtuple('Multiplication', ('left', 'right'))):
     pass
 
 
-class Division(namedtuple('Division', ('left', 'right'))):
+class Division(TreeNode, namedtuple('Division', ('left', 'right'))):
     pass
 
 
-class Addition(namedtuple('Addition', ('left', 'right'))):
+class Addition(TreeNode, namedtuple('Addition', ('left', 'right'))):
     pass
 
 
-class Subtraction(namedtuple('Subtraction', ('left', 'right'))):
+class Subtraction(TreeNode, namedtuple('Subtraction', ('left', 'right'))):
     pass
 
 
-class Inversion(namedtuple('Inversion', ('value',))):
+class Inversion(TreeNode, namedtuple('Inversion', ('value',))):
     pass
