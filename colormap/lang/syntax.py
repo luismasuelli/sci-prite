@@ -329,3 +329,10 @@ class ColorMapLexerFactory(LYFactory):
             p[0] = ()
         else:
             p[0] = (p[1],) + p[2]
+
+    def p_main(self, p):
+        """
+        main : var_instructions
+        """
+
+        p[0] = p[1]
