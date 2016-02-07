@@ -4,7 +4,18 @@ import numpy
 from colormap.expressions import mask
 from common.proxy import Proxy
 
-ColorSpace = collections.namedtuple('ColorSpace', ['encoder', 'decoder'])
+class ColorSpace(collections.namedtuple('ColorSpace', ['encoder', 'decoder', 'components'])):
+
+    def __getattribute__(self, item):
+        """
+        Allows us to recover something like rgb.R or rgb.ALPHA
+        """
+
+        if item == 'ALPHA':
+            return 3
+        if len(item) == 1 and 'Z' >= item >= 'A' and item.lower() in self[2]:
+            return self[2].index(item.lower())
+        return super(ColorSpace, self).__getattribute__(item)
 
 
 from skimage.color import (
@@ -80,7 +91,7 @@ def _alpha_aware_colorspace_wrapper(enc, dec, wrapper_class):
         # Back to plain-rgb
         dec(wrapper.np_image)
 
-    return ColorSpace(encode, decode)
+    return ColorSpace(encode, decode, wrapper_class.COMPONENTS)
 
 
 def is_scalar(img):
@@ -176,6 +187,7 @@ class RGB(ColorSpaceWrapper):
     RGB (perhaps with Alpha) color space.
     """
 
+    COMPONENTS = 'rgb'
     r, g, b, alpha = band_properties(4)
     r_is, g_is, b_is = mask_bands(0), mask_bands(1), mask_bands(2)
     rg_is, rb_is, gb_is = mask_bands(0, 1), mask_bands(0, 2), mask_bands(1, 2)
@@ -188,6 +200,7 @@ class HSV(ColorSpaceWrapper):
     HSV (perhaps with Alpha) color space.
     """
 
+    COMPONENTS = 'hsv'
     h, s, v, alpha = band_properties(4)
     h_is, s_is, v_is = mask_bands(0), mask_bands(1), mask_bands(2)
     hs_is, hv_is, sv_is = mask_bands(0, 1), mask_bands(0, 2), mask_bands(1, 2)
@@ -200,6 +213,7 @@ class LUV(ColorSpaceWrapper):
     LUV (perhaps with Alpha) color space.
     """
 
+    COMPONENTS = 'luv'
     l, u, v, alpha = band_properties(4)
     l_is, u_is, v_is = mask_bands(0), mask_bands(1), mask_bands(2)
     lu_is, lv_is, uv_is = mask_bands(0, 1), mask_bands(0, 2), mask_bands(1, 2)
@@ -212,6 +226,7 @@ class HED(ColorSpaceWrapper):
     HED (perhaps with Alpha) color space.
     """
 
+    COMPONENTS = 'hed'
     h, e, d, alpha = band_properties(4)
     h_is, e_is, d_is = mask_bands(0), mask_bands(1), mask_bands(2)
     he_is, hd_is, ed_is = mask_bands(0, 1), mask_bands(0, 2), mask_bands(1, 2)
@@ -224,6 +239,8 @@ class LAB(ColorSpaceWrapper):
     LAB (perhaps with Alpha) color space.
     """
 
+    COMPONENTS = 'lab'
+    L, A, B, ALPHA = range(4)
     l, a, b, alpha = band_properties(4)
     l_is, a_is, b_is = mask_bands(0), mask_bands(1), mask_bands(2)
     la_is, lb_is, ab_is = mask_bands(0, 1), mask_bands(0, 2), mask_bands(1, 2)
@@ -236,6 +253,7 @@ class XYZ(ColorSpaceWrapper):
     XYZ (perhaps with alpha) color space.
     """
 
+    COMPONENTS = 'xyz'
     x, y, z, alpha = band_properties(4)
     x_is, y_is, z_is = mask_bands(0), mask_bands(1), mask_bands(2)
     xy_is, xz_is, yz_is = mask_bands(0, 1), mask_bands(0, 2), mask_bands(1, 2)
