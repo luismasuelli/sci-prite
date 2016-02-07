@@ -2,6 +2,10 @@ from collections import namedtuple
 from .core import TreeNode
 
 
+class ErroneousToken(TreeNode, namedtuple('ErroneousToken', ())):
+    pass
+
+
 class VectorAssignment(TreeNode, namedtuple('VectorAssignment', ('variable', 'expression'))):
     pass
 
