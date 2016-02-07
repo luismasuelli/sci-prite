@@ -121,6 +121,59 @@ class ColorSpaceWrapper(Proxy):
     def __init__(self, np_image):
         self._ = np_image
 
+    def set(self, components, value):
+        """
+        Sets each value in the component to value. Value may be an iterable so we can operate
+          component-wise.
+        """
+        self.np_image[:, :, components] = value
+        return self
+
+    def add(self, components, value):
+        """
+        Increments each value in the component by value. Value may be an iterable so we can operate
+          component-wise.
+        """
+        self.np_image[:, :, components] += value
+        return self
+
+    def sub(self, components, value):
+        """
+        Decrements each value in the component by value. Value may be an iterable so we can operate
+          component-wise.
+        """
+        self.np_image[:, :, components] -= value
+        return self
+
+    def mul(self, components, value):
+        """
+        Multiplies each value in the component by value. Value may be an iterable so we can operate
+          component-wise.
+        """
+        self.np_image[:, :, components] *= value
+        return self
+
+    def div(self, components, value):
+        """
+        Divides each value in the component by value. Value may be an iterable so we can operate
+          component-wise.
+        """
+        self.np_image[:, :, components] /= value
+        return self
+
+    def clamp(self, components):
+        """
+        Clamps each value in the selected components to interval 0..1. Both bounds allowed.
+        """
+        self.np_image[:, :, components] = numpy.clip(self.np_image[:, :, components], 0., 1.)
+        return self
+
+    def rotate(self, components):
+        """
+        Rotates in modulo-1 each value in the selected components to interval 0..1. Excludes value 1, so be wary.
+        """
+        self.np_image[:, :, components] = self.np_image[:, :, components] % 1
+        return self
 
 def band_property(idx):
     """
@@ -240,7 +293,6 @@ class LAB(ColorSpaceWrapper):
     """
 
     COMPONENTS = 'lab'
-    L, A, B, ALPHA = range(4)
     l, a, b, alpha = band_properties(4)
     l_is, a_is, b_is = mask_bands(0), mask_bands(1), mask_bands(2)
     la_is, lb_is, ab_is = mask_bands(0, 1), mask_bands(0, 2), mask_bands(1, 2)
