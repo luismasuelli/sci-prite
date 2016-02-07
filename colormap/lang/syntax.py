@@ -280,14 +280,14 @@ class ColorMapLexerFactory(LYFactory):
         literal_vector : '[' numeric_expression_cslist ']'
         """
 
-        p[0] = array(p[2])
+        p[0] = expressions.LiteralVector(p[2])
 
     def p_literal_vector_error(self, p):
         """
         literal_vector : '[' error ']'
                        | '[' error ';'
         """
-        print "Unexpected token: %s. Expected: a numeric expressions list" % list(p)
+        print "Unexpected token: %s. Expected: a numeric expressions list" % p[2].value
 
     def p_numeric_var_instruction(self, p):
         """
@@ -300,7 +300,15 @@ class ColorMapLexerFactory(LYFactory):
         """
         numeric_var_instruction : NUMVAR error ';'
         """
-        print "Unexpected token: %s. Expected: =" % p
+
+        print "Unexpected token: %s. Expected: =" % p[2].value
+
+    def p_numeric_var_instruction_error2(self, p):
+        """
+        numeric_var_instruction : NUMVAR ASSIGN error ';'
+        """
+
+        print "Unexpected token: %s. Expected: numeric expression" % p[3].value
 
     def p_vector_var_instruction(self, p):
         """
@@ -308,6 +316,20 @@ class ColorMapLexerFactory(LYFactory):
         """
 
         p[0] = expressions.VectorAssignment(p[1], p[3])
+
+    def p_vector_var_instruction_error1(self, p):
+        """
+        vector_var_instruction : VECVAR ASSIGN error ';'
+        """
+
+        print "Unexpected token: %s. Expected: vector expression" % p[3].value
+
+    def p_vector_var_instruction_error2(self, p):
+        """
+        vector_var_instruction : VECVAR error ';'
+        """
+
+        print "Unexpected token: %s. Expected: =" % p[2].value
 
     def p_var_instruction(self, p):
         """
