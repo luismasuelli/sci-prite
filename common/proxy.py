@@ -1,20 +1,3 @@
-import six
-
-
-PROXY_MAGIC = {'str', 'complex', 'unicode', 'bytes', 'int', 'long', 'bool', 'float', 'nonzero', 'index', 'hash', 'len',
-               'le', 'lt', 'ge', 'gt', 'ne', 'eq', 'cmp', 'call', 'iter', 'missing', 'reversed', 'contains',
-               'add', 'sub', 'mul', 'div', 'truediv', 'floordiv', 'mod', 'divmod', 'pow', 'lshift', 'rshift',
-               'and', 'or', 'xor',
-               'iadd', 'isub', 'imul', 'idiv', 'itruediv', 'ifloordiv', 'imod', 'idivmod', 'ipow', 'ilshift', 'irshift',
-               'iand', 'ior', 'ixor',
-               'radd', 'rsub', 'rmul', 'rdiv', 'rtruediv', 'rfloordiv', 'rmod', 'rdivmod', 'rpow', 'rlshift', 'rrshift',
-               'rand', 'ror', 'rxor',
-               'neg', 'pos', 'abs', 'invert',
-               'oct', 'hex', 'repr',
-               'enter', 'exit',
-               'getitem', 'setitem', 'delitem', 'get', 'set', 'del'}
-
-
 class Proxy(object):
 
     def __setattr__(self, key, value):
